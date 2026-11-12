@@ -131,7 +131,9 @@ function imageFallbacks() {
     if (!ph.querySelector(".ph-fallback")) {
       const fb = document.createElement("div");
       fb.className = "ph-fallback";
-      fb.innerHTML = `<div>${leaf}<small>${img.getAttribute("src")}</small></div>`;
+      // nome do arquivo só aparece rodando localmente, para saber qual imagem falta
+      const local = /^(localhost|127\.0\.0\.1|)$/.test(location.hostname);
+      fb.innerHTML = `<div>${leaf}${local ? `<small>${img.getAttribute("src")}</small>` : ""}</div>`;
       ph.append(fb);
     }
     const fail = () => ph.classList.add("missing");
