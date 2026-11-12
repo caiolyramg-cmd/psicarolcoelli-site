@@ -168,16 +168,39 @@ em.accent { font-style: italic; color: var(--terra); }
 @keyframes sway { 0%, 100% { transform: rotate(0); opacity: 1; } 50% { transform: rotate(7deg); opacity: 1; } }
 .tree .trunk { stroke-dasharray: 900; stroke-dashoffset: 900; animation: draw 2.4s .3s var(--ease) forwards; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
-.hero-badge {
-  position: absolute; z-index: 3; background: #fff; border-radius: 18px; padding: 14px 18px;
-  box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px; font-size: .9rem; line-height: 1.3;
-  animation: float 6s ease-in-out infinite;
+/* Foto da Carol na abertura; se ainda não existir, mostra a árvore */
+.hero-art .hero-photo {
+  position: absolute; inset: 4% 6% 6% 4%; z-index: 1; border-radius: 58% 42% 55% 45% / 48% 55% 45% 52%;
+  box-shadow: var(--shadow); animation: morphShape 14s ease-in-out infinite;
 }
-.hero-badge strong { display: block; color: var(--navy-dark); font-size: 1rem; }
-.hero-badge .dot { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--peach-soft); color: var(--terra); flex: none; }
-.hero-badge .dot svg { width: 20px; height: 20px; }
-.hero-badge.b1 { left: -6%; bottom: 14%; }
-.hero-badge.b2 { right: -4%; top: 10%; animation-delay: -3s; }
+.hero-photo img { object-position: center 20%; }
+.hero-art:has(.hero-photo:not(.missing)) { aspect-ratio: 4 / 5; max-width: 460px; }
+.hero-art .blob { inset: 8% 2% 2% 8%; }
+.hero-art:has(.hero-photo:not(.missing)) .tree { display: none; }
+.hero-art:has(.hero-photo.missing) .hero-photo { display: none; }
+.hero-art:has(.hero-photo.missing) .blob { inset: 6%; }
+@keyframes morphShape {
+  0%, 100% { border-radius: 58% 42% 55% 45% / 48% 55% 45% 52%; }
+  33% { border-radius: 45% 55% 42% 58% / 56% 44% 56% 44%; }
+  66% { border-radius: 60% 40% 50% 50% / 42% 58% 42% 58%; }
+}
+
+/* Balões: o .hero-badge flutua, o .badge-card é arrastável (main.js → draggableBadges) */
+.hero-badge { position: absolute; z-index: 3; animation: float 6s ease-in-out infinite; }
+.hero-badge:has(.grabbing) { z-index: 50; animation-play-state: paused; }
+.badge-card {
+  background: #fff; border-radius: 18px; padding: 14px 18px;
+  box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px; font-size: .9rem; line-height: 1.3;
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+  transition: box-shadow .3s; will-change: transform;
+}
+.badge-card.grabbing { cursor: grabbing; box-shadow: 0 30px 60px -20px rgba(47, 74, 124, .45); }
+.badge-card strong { display: block; color: var(--navy-dark); font-size: 1rem; }
+.badge-card .dot { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--peach-soft); color: var(--terra); flex: none; }
+.badge-card .dot svg { width: 20px; height: 20px; }
+.hero-badge.b1 { left: -8%; bottom: 16%; }
+.hero-badge.b2 { right: -6%; top: 8%; animation-delay: -3s; }
+.hero-badge.b3 { right: -4%; bottom: -2%; animation-delay: -1.5s; }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
 
 /* formas flutuantes de fundo */
@@ -218,25 +241,13 @@ em.accent { font-style: italic; color: var(--terra); }
 .mode-card:has(> .ph.missing) { grid-template-columns: 1fr; }
 .mode-card > .ph.missing,
 .split > .ph.missing,
-.split > .photo-stack:has(> .ph.missing:first-child),
-.about-grid > .portrait:has(.ph.missing) { display: none; }
+.split > .photo-stack:has(> .ph.missing:first-child) { display: none; }
 .split:has(> .ph.missing),
-.split:has(> .photo-stack > .ph.missing:first-child),
-.about-grid:has(> .portrait .ph.missing) { grid-template-columns: 1fr; max-width: 820px; margin-inline: auto; }
+.split:has(> .photo-stack > .ph.missing:first-child) { grid-template-columns: 1fr; max-width: 820px; margin-inline: auto; }
 .ph-fallback small { display: block; font-size: .72rem; letter-spacing: .08em; opacity: .55; font-family: monospace; }
 
 /* ---------- Sobre (home) ---------- */
-.about-grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(40px, 7vw, 100px); align-items: center; }
-.portrait { position: relative; }
-.portrait .ph { aspect-ratio: 4 / 5; border-radius: 200px 200px var(--radius) var(--radius); box-shadow: var(--shadow); }
-.portrait::before { content: ""; position: absolute; inset: 24px -24px -24px 24px; border: 2px solid var(--terra); border-radius: 200px 200px var(--radius) var(--radius); z-index: -1; }
-.portrait .stamp {
-  position: absolute; right: -30px; bottom: 40px; width: 130px; height: 130px; border-radius: 50%;
-  background: var(--navy); color: #fff; display: grid; place-items: center; box-shadow: var(--shadow);
-}
-.stamp svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: spin 18s linear infinite; }
-.stamp b { font-family: var(--serif); font-size: 1.9rem; font-weight: 500; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.about-solo { max-width: 820px; }
 .about-text h2 { margin-bottom: .6em; }
 .highlight { background: linear-gradient(transparent 62%, var(--peach-soft) 62%); padding: 0 .1em; }
 
@@ -404,12 +415,10 @@ em.accent { font-style: italic; color: var(--terra); }
 }
 @media (max-width: 860px) {
   .hero { padding-top: 120px; min-height: auto; }
-  .hero-grid, .about-grid, .split, .product, .footer-grid { grid-template-columns: 1fr; }
+  .hero-grid, .split, .product, .footer-grid { grid-template-columns: 1fr; }
   .hero-art { max-width: 380px; order: -1; }
-  .hero-badge.b1 { left: 0; } .hero-badge.b2 { right: 0; }
+  .hero-badge.b1 { left: 0; } .hero-badge.b2 { right: 0; } .hero-badge.b3 { right: 2%; }
   .split.reverse > :first-child { order: 0; }
-  .portrait { max-width: 400px; width: 100%; margin: 0 auto; }
-  .portrait .stamp { right: -6px; width: 110px; height: 110px; }
   .mode-card { grid-template-columns: 1fr; }
   .mode-card .ph { aspect-ratio: 16 / 10; }
   .mode-card.reverse .ph { order: 0; }
@@ -426,8 +435,9 @@ em.accent { font-style: italic; color: var(--terra); }
   .area-card { grid-template-columns: 1fr; text-align: left; }
   .area-card .ph { width: 140px; }
   .steps, .posts { grid-template-columns: 1fr; }
-  .hero-badge { padding: 10px 12px; font-size: .78rem; }
-  .hero-badge .dot { width: 34px; height: 34px; font-size: 1rem; }
+  .badge-card { padding: 10px 12px; font-size: .78rem; gap: 10px; }
+  .badge-card strong { font-size: .85rem; }
+  .badge-card .dot { width: 34px; height: 34px; }
   .btn { padding: 14px 24px; }
 }
 

@@ -220,7 +220,58 @@ function cursor() {
     c.style.transform = `translate(${cx}px, ${cy}px)`;
     requestAnimationFrame(loop);
   })();
-  document.addEventListener("mouseover", (e) => c.classList.toggle("hover", !!e.target.closest("a, button, summary")));
+  document.addEventListener("mouseover", (e) => c.classList.toggle("hover", !!e.target.closest("a, button, summary, .badge-card")));
+}
+
+/* Balões do hero: arrastar com mouse ou dedo; ao soltar, voltam com efeito de mola */
+function draggableBadges() {
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.querySelectorAll(".badge-card").forEach((card) => {
+    let x = 0, y = 0, vx = 0, vy = 0, ox = 0, oy = 0, lx = 0, ly = 0, lt = 0;
+    let dragging = false, raf = 0;
+    const render = () => {
+      const tilt = Math.max(-14, Math.min(14, vx * 0.8));
+      card.style.transform = `translate(${x}px, ${y}px) rotate(${tilt}deg) scale(${dragging ? 1.07 : 1})`;
+    };
+    card.addEventListener("pointerdown", (e) => {
+      if (e.button > 0) return;
+      cancelAnimationFrame(raf);
+      dragging = true;
+      card.setPointerCapture(e.pointerId);
+      card.classList.add("grabbing");
+      ox = e.clientX - x; oy = e.clientY - y;
+      lx = e.clientX; ly = e.clientY; lt = performance.now();
+      render();
+    });
+    card.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const now = performance.now(), dt = Math.max(1, now - lt);
+      // velocidade em px por quadro (~16ms), usada para inclinar e para o arremesso
+      vx = vx * 0.5 + ((e.clientX - lx) / dt) * 16 * 0.5;
+      vy = vy * 0.5 + ((e.clientY - ly) / dt) * 16 * 0.5;
+      lx = e.clientX; ly = e.clientY; lt = now;
+      x = e.clientX - ox; y = e.clientY - oy;
+      render();
+    });
+    const release = () => {
+      if (!dragging) return;
+      dragging = false;
+      card.classList.remove("grabbing");
+      if (calm) { x = y = vx = vy = 0; card.style.transform = ""; return; }
+      const stiffness = 0.09, damping = 0.82;
+      (function spring() {
+        vx = (vx - x * stiffness) * damping;
+        vy = (vy - y * stiffness) * damping;
+        x += vx; y += vy;
+        render();
+        if (Math.abs(x) + Math.abs(y) + Math.abs(vx) + Math.abs(vy) > 0.15) raf = requestAnimationFrame(spring);
+        else { x = y = vx = vy = 0; card.style.transform = ""; }
+      })();
+    };
+    card.addEventListener("pointerup", release);
+    card.addEventListener("pointercancel", release);
+    card.addEventListener("lostpointercapture", release);
+  });
 }
 
 /* FAQ: abre um por vez */
@@ -240,4 +291,5 @@ reveals();
 treeLeaves();
 tilt();
 cursor();
+draggableBadges();
 faq();
