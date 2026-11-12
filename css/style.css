@@ -173,7 +173,8 @@ em.accent { font-style: italic; color: var(--terra); }
   position: absolute; inset: 4% 6% 6% 4%; z-index: 1; border-radius: 58% 42% 55% 45% / 48% 55% 45% 52%;
   box-shadow: var(--shadow); animation: morphShape 14s ease-in-out infinite;
 }
-.hero-photo img { object-position: center 20%; }
+.hero-photo img { object-position: center 20%; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+.hero-art { user-select: none; -webkit-user-select: none; }
 .hero-art:has(.hero-photo:not(.missing)) { aspect-ratio: 4 / 5; max-width: 460px; }
 .hero-art .blob { inset: 8% 2% 2% 8%; }
 .hero-art:has(.hero-photo:not(.missing)) .tree { display: none; }

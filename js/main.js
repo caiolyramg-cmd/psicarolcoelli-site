@@ -223,7 +223,7 @@ function cursor() {
   document.addEventListener("mouseover", (e) => c.classList.toggle("hover", !!e.target.closest("a, button, summary, .badge-card")));
 }
 
-/* Balões do hero: arrastar com mouse ou dedo; ao soltar, voltam com efeito de mola */
+/* Balões do hero: arrastar com mouse ou dedo; ao soltar, deslizam com o embalo e ficam onde pararem */
 function draggableBadges() {
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
   document.querySelectorAll(".badge-card").forEach((card) => {
@@ -252,21 +252,40 @@ function draggableBadges() {
       lx = e.clientX; ly = e.clientY; lt = now;
       x = e.clientX - ox; y = e.clientY - oy;
       render();
+      keepInside(false);
+      ox = e.clientX - x; oy = e.clientY - y;
+      render();
     });
     const release = () => {
       if (!dragging) return;
       dragging = false;
       card.classList.remove("grabbing");
-      if (calm) { x = y = vx = vy = 0; card.style.transform = ""; return; }
-      const stiffness = 0.09, damping = 0.82;
-      (function spring() {
-        vx = (vx - x * stiffness) * damping;
-        vy = (vy - y * stiffness) * damping;
+      if (calm) { vx = vy = 0; render(); return; }
+      // solto: continua deslizando com o embalo, desacelera e quica nas bordas da abertura
+      const friction = 0.9, maxSpeed = 28; // desliza no máximo ~250px
+      const speed = Math.hypot(vx, vy);
+      if (speed > maxSpeed) { vx *= maxSpeed / speed; vy *= maxSpeed / speed; }
+      // se o dedo/mouse parou antes de soltar, não há embalo
+      if (performance.now() - lt > 80) vx = vy = 0;
+      (function glide() {
+        vx *= friction; vy *= friction;
         x += vx; y += vy;
+        keepInside(true);
         render();
-        if (Math.abs(x) + Math.abs(y) + Math.abs(vx) + Math.abs(vy) > 0.15) raf = requestAnimationFrame(spring);
-        else { x = y = vx = vy = 0; card.style.transform = ""; }
+        if (Math.abs(vx) + Math.abs(vy) > 0.1) raf = requestAnimationFrame(glide);
+        else { vx = vy = 0; render(); }
       })();
+    };
+    // mantém o balão dentro da área da abertura (hero)
+    const keepInside = (bounce) => {
+      const area = card.closest(".hero")?.getBoundingClientRect();
+      if (!area) return;
+      const r = card.getBoundingClientRect();
+      const top = area.top + 80; // abaixo do menu
+      if (r.left < area.left) { x += area.left - r.left; if (bounce) vx = Math.abs(vx) * 0.6; }
+      if (r.right > area.right) { x -= r.right - area.right; if (bounce) vx = -Math.abs(vx) * 0.6; }
+      if (r.top < top) { y += top - r.top; if (bounce) vy = Math.abs(vy) * 0.6; }
+      if (r.bottom > area.bottom) { y -= r.bottom - area.bottom; if (bounce) vy = -Math.abs(vy) * 0.6; }
     };
     card.addEventListener("pointerup", release);
     card.addEventListener("pointercancel", release);
